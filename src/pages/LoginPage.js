@@ -4,6 +4,7 @@ import { auth, googleProvider } from '../firebase-config';
 import { useNavigate } from 'react-router-dom';
 import googleLogo from './google-logo.svg';
 
+
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,26 +42,47 @@ const LoginPage = () => {
     setIsLoading(true); 
     
     try {
-      await signInWithPopup(auth, googleProvider);
+      // Configure popup settings
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      // Add timeout promise
+      const signInPromise = signInWithPopup(auth, googleProvider);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Login timeout')), 30000)
+      );
+      
+      // Race between signin and timeout
+      await Promise.race([signInPromise, timeoutPromise]);
       navigate('/dashboard');
     } catch (error) {
       console.error('Google log-In error:', error);
       
       switch (error.code) {
         case 'auth/popup-closed-by-user':
-          setError('Please keep log-in window open to  login');
+          setError('Sign-in window closed too early. Please try again and keep the window open.');
           break;
         case 'auth/popup-blocked':
-          setError('Please allow pop-ups  to use Google log-in');
+          setError('Pop-up was blocked. Please allow pop-ups and try again.');
+          break;
+        case 'auth/cancelled-popup-request':
+          setError('Another sign-in attempt is in progress. Please wait.');
+          break;
+        case 'auth/network-request-failed':
+          setError('Network error. Please check your connection and try again.');
           break;
         default:
-          setError('Google log-In failed. Please try again.');
+          if (error.message === 'Login timeout') {
+            setError('Login took too long. Please try again.');
+          } else {
+            setError('Sign-in failed. Please try again.');
+          }
       }
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="w-full max-w-md bg-white shadow-2xl rounded-xl p-8 space-y-6 border border-gray-200">
