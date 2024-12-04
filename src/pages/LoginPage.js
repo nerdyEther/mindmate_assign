@@ -42,10 +42,10 @@ const LoginPage = () => {
     setIsLoading(true); 
     
     try {
-      // Clear any existing auth state
+    
       await auth.signOut();
       
-      // Force popup to open in a new window instead of iframe
+    
       const newWindow = window.open('about:blank', '_blank', 'width=600,height=600');
       if (!newWindow) {
         throw new Error('Popup blocked');
@@ -67,9 +67,6 @@ const LoginPage = () => {
       switch (error.code) {
         case 'auth/popup-closed-by-user':
           setError('Please complete the sign-in process in the popup window');
-          break;
-        case 'auth/cancelled-popup-request':
-          setError('Only one sign-in window can be open at a time');
           break;
         case 'auth/popup-blocked':
           setError('Popup was blocked. Please allow popups for this site');
