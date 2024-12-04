@@ -69,7 +69,7 @@ const LoginPage = () => {
           setError('Please complete the sign-in process in the popup window');
           break;
         case 'auth/popup-blocked':
-          setError('Popup was blocked. Please allow popups for this site');
+          setError('THIS IS POPUP BASED GOOGLE LOG IN. YOU MUST ALLOW POPUPS FOR THIS SITE.');
           break;
         default:
           setError('Sign-in failed. Please try again');
