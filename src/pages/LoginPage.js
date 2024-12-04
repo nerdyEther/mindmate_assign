@@ -37,18 +37,27 @@ const LoginPage = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    setError(''); 
+    setIsLoading(true); 
+    
     try {
       await signInWithPopup(auth, googleProvider);
       navigate('/dashboard');
     } catch (error) {
+      console.error('Google log-In error:', error);
+      
       switch (error.code) {
         case 'auth/popup-closed-by-user':
-          setError('Google Sign-In was cancelled.');
+          setError('Please keep log-in window open to  login');
+          break;
+        case 'auth/popup-blocked':
+          setError('Please allow pop-ups  to use Google log-in');
           break;
         default:
-          setError('Google Sign-In failed. Please try again.');
-          console.error('Google Sign-In error:', error);
+          setError('Google log-In failed. Please try again.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
