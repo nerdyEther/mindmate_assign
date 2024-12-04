@@ -60,7 +60,7 @@ const LoginPage = () => {
       console.error('Google log-In error:', error);
       
       if (error.message === 'Popup blocked') {
-        setError('THIS IS POPUP BASED GOOGLE LOG IN. YOU MUST ALLOW POPUPS FOR THIS SITE.');
+        setError('THIS IS POPUP BASED GOOGLE LOG IN. YOU MUST ALLOW POPUPS FOR THIS SITE AND RELOAD.');
         return;
       }
       
