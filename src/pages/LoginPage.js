@@ -8,17 +8,18 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/dashboard');
     } catch (err) {
-      
       switch (err.code) {
         case 'auth/invalid-credential':
           setError('Incorrect email or password. Please try again.');
@@ -27,10 +28,11 @@ const LoginPage = () => {
           setError('Too many login attempts. Please try again later.');
           break;
         default:
-          
           setError('An error occurred. Please try again.');
           console.error('Login error:', err);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -39,7 +41,6 @@ const LoginPage = () => {
       await signInWithPopup(auth, googleProvider);
       navigate('/dashboard');
     } catch (error) {
-  
       switch (error.code) {
         case 'auth/popup-closed-by-user':
           setError('Google Sign-In was cancelled.');
@@ -66,6 +67,7 @@ const LoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -77,14 +79,16 @@ const LoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
+              disabled={isLoading}
             />
           </div>
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <button 
             type="submit"
-            className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-300"
+            className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
@@ -92,6 +96,7 @@ const LoginPage = () => {
           <button 
             onClick={handleGoogleSignIn}
             className="flex items-center space-x-2 text-gray-600 hover:text-black"
+            disabled={isLoading}
           >
             <img src={googleLogo} alt="Google logo" className="w-5 h-5" />
             <span className="text-sm">Google Sign in</span>
@@ -104,6 +109,7 @@ const LoginPage = () => {
             <button 
               onClick={() => navigate('/signup')}
               className="text-gray-700 ml-1 hover:underline"
+              disabled={isLoading}
             >
               Sign Up
             </button>

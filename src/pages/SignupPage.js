@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth} from '../firebase-config';
+import { auth } from '../firebase-config';
 import { useNavigate } from 'react-router-dom';
-
+import { toast } from 'react-toastify';
 
 const SignupPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     if (password.length < 6) {
       setError('Password should be at least 6 characters long');
+      setIsLoading(false);
       return;
     }
 
@@ -31,7 +34,22 @@ const SignupPage = () => {
         displayName: name
       });
 
-      navigate('/dashboard');
+    
+      await auth.signOut();
+
+      
+      toast.success('User created successfully! Please log in.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      navigate('/login');
+    
+
     } catch (err) {
       switch (err.code) {
         case 'auth/email-already-in-use':
@@ -43,6 +61,8 @@ const SignupPage = () => {
         default:
           setError(err.message);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,6 +81,7 @@ const SignupPage = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -72,6 +93,7 @@ const SignupPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -84,30 +106,31 @@ const SignupPage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
               minLength="6"
+              disabled={isLoading}
             />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button 
             type="submit"
-            className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-300"
+            className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Sign Up
+            {isLoading ? 'Creating User...' : 'Sign Up'}
           </button>
         </form>
 
         <div className="text-center mt-4">
-  <p className="text-sm text-black">
-    Existing User? 
-    <button 
-      onClick={() => navigate('/login')}
-      className="text-gray-700 ml-1 hover:underline"
-    >
-      Login
-    </button>
-  </p>
-</div>
-
-
+          <p className="text-sm text-black">
+            Existing User? 
+            <button 
+              onClick={() => navigate('/login')}
+              className="text-gray-700 ml-1 hover:underline"
+              disabled={isLoading}
+            >
+              Login
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

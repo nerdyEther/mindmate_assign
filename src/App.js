@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './firebase-config';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
-import Signup from './pages/Signup';
-
+import Signup from './pages/SignupPage';
 
 function App() {
   const [user, loading] = useAuthState(auth);
@@ -19,16 +20,16 @@ function App() {
   }
 
   return (
-    
     <Router>
+      <ToastContainer />
       <Routes>
         <Route 
           path="/login" 
-          element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} 
+          element={<LoginPage />} 
         />
         <Route 
           path="/signup" 
-          element={!user ? <Signup /> : <Navigate to="/dashboard" />} 
+          element={<Signup />} 
         />
         <Route 
           path="/dashboard" 
@@ -40,7 +41,6 @@ function App() {
         />
       </Routes>
     </Router>
- 
   );
 }
 
