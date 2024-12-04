@@ -42,42 +42,40 @@ const LoginPage = () => {
     setIsLoading(true); 
     
     try {
-      // Configure popup settings
-      googleProvider.setCustomParameters({
-        prompt: 'select_account'
-      });
+      // Clear any existing auth state
+      await auth.signOut();
       
-      // Add timeout promise
-      const signInPromise = signInWithPopup(auth, googleProvider);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Login timeout')), 30000)
-      );
+      // Force popup to open in a new window instead of iframe
+      const newWindow = window.open('about:blank', '_blank', 'width=600,height=600');
+      if (!newWindow) {
+        throw new Error('Popup blocked');
+      }
+      newWindow.close();
       
-      // Race between signin and timeout
-      await Promise.race([signInPromise, timeoutPromise]);
-      navigate('/dashboard');
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user) {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Google log-In error:', error);
       
+      if (error.message === 'Popup blocked') {
+        setError('Please allow popups for this site');
+        return;
+      }
+      
       switch (error.code) {
         case 'auth/popup-closed-by-user':
-          setError('Sign-in window closed too early. Please try again and keep the window open.');
-          break;
-        case 'auth/popup-blocked':
-          setError('Pop-up was blocked. Please allow pop-ups and try again.');
+          setError('Please complete the sign-in process in the popup window');
           break;
         case 'auth/cancelled-popup-request':
-          setError('Another sign-in attempt is in progress. Please wait.');
+          setError('Only one sign-in window can be open at a time');
           break;
-        case 'auth/network-request-failed':
-          setError('Network error. Please check your connection and try again.');
+        case 'auth/popup-blocked':
+          setError('Popup was blocked. Please allow popups for this site');
           break;
         default:
-          if (error.message === 'Login timeout') {
-            setError('Login took too long. Please try again.');
-          } else {
-            setError('Sign-in failed. Please try again.');
-          }
+          setError('Sign-in failed. Please try again');
       }
     } finally {
       setIsLoading(false);
